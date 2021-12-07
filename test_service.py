@@ -1,6 +1,6 @@
 from datetime import date
 from config import *
-from main import TurkishGekkoBinanceService
+from turkish_gekko_packages.binance_service import TurkishGekkoBinanceService
 
 
 def test_service():
