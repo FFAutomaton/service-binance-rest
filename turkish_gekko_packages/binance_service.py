@@ -1,4 +1,6 @@
 from datetime import timedelta
+
+import binance
 from binance.client import Client
 
 
@@ -44,3 +46,53 @@ class TurkishGekkoBinanceService:
         )
 
         return dayklines, fourhourklines, hourlyklines, fifteenminklines
+
+    def check_api_permissions(self):
+        client = self.client
+        _temp = client.get_account_api_permissions()
+        if _temp['ipRestrict'] is True:
+            return 'Has ip restriction'
+        elif _temp['enableSpotAndMarginTrading'] is False:
+            return 'Has no Spot and Margin trade permission'
+        else:
+            return None
+
+# Bunu sonradan nerde ne asset var bilmedigim bi hesaba baglarsam her seyi
+# satip sonra all in all out stratejisine gecebilmek icin yazdim
+    def balance_founder(self):
+        not_zero_balances = []
+        quantities = []
+        _temp = self.get_client().get_account()
+        balances = _temp['balances']
+        for i in balances:
+            condition = float(i['free'])
+            if condition != 0.0:
+                not_zero_balances.append(i['asset'])
+                quantities.append(i['free'])
+        if len(not_zero_balances) == 0:
+            return None
+        resp = dict(zip(not_zero_balances, quantities))
+
+        return resp
+
+# TODO bu market buyla selle BinanceOrderMinAmountException gibi exceptionlari ekleyelim
+# TODO baya kaya kadar saglam olur o sekilde das gibi olur dasss
+    def market_buy(self, symbol, quantity):
+        # symbole ornek olarak 'ETHUSDT'
+        client = self.client
+        try:
+            api_resp = client.order_market_buy(symbol=symbol, quantity=quantity)
+            # api_resp['status'] = FILLED
+            return api_resp
+        except:
+            None
+            return None
+
+    def market_sell(self, symbol, quantity):
+        client = self.client
+        try:
+            api_resp = client.order_market_sell(symbol=symbol, quantity=quantity)
+            return api_resp
+        except:
+            None
+            return None
