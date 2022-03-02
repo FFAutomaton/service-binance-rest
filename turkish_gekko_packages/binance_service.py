@@ -1,15 +1,37 @@
+import time, json, hmac, hashlib, requests, binance, datetime
 from datetime import timedelta
-import requests
-import binance
 from binance.client import Client
 import pandas as pd
+from urllib.parse import urljoin, urlencode
+BASE_URL = 'https://api.binance.com'
+
+
+class BinanceException(Exception):
+    def __init__(self, status_code, data):
+
+        self.status_code = status_code
+        if data:
+            self.code = data['code']
+            self.msg = data['msg']
+        else:
+            self.code = None
+            self.msg = None
+        message = f"{status_code} [{self.code}] {self.msg}"
+
+        # Python 2.x
+        # super(BinanceException, self).__init__(message)
+        super().__init__(message)
 
 
 class TurkishGekkoBinanceService:
     def __init__(self, config=None):
+        self.headers = None
         self.client = None
         self.Config = config
         self.client = self._get_client()
+        self.headers = {
+            'X-MBX-APIKEY': self.Config.get('API_KEY')
+        }
 
     def _get_client(self):
         return Client(self.Config.get('API_KEY'), self.Config.get('API_SECRET'))
@@ -99,6 +121,7 @@ class TurkishGekkoBinanceService:
             return None
 
 # TODO yuvarlama isi var commentteki satiri aktiflestirmeyi unutma
+    @staticmethod
     def order_book(token):
         r = requests.get("https://api.binance.com/api/v3/depth", params=dict(symbol=token))
         results = r.json()
@@ -122,10 +145,18 @@ class TurkishGekkoBinanceService:
         # TODO kontrol yapmak icin kullanabiliriz
         # all_symbols = self.client.get_all_isolated_margin_symbols()
         # info = self.client.get_margin_asset(asset='BNB')
-        info = self.client.get_margin_account()
+        # info = self.client.get_margin_account()
+        max_token_miktari = self.client.get_max_margin_transfer(asset='USDT')
 
+        trades = self.client.get_margin_trades(symbol='BNBUSDT')
+        all_orders = self.client.get_all_margin_orders(symbol='BNBUSDT')
+        acik_orderlar = self.client.get_open_margin_orders()
 
-        return info
+        # temp = self.client.futures_account_balance()
+        anan = self.client.futures_account_balance(asset='USDT', amount=10.0, type=1, timestamp=datetime.datetime.now())
+        print(anan[6])
+
+        return 0
 
     def spottan_margine_transfer(self, token, miktar):
         transaction = self.client.transfer_spot_to_margin(asset=token, amount=miktar)
@@ -133,7 +164,33 @@ class TurkishGekkoBinanceService:
     def marginden_spota_transfer(self, token, miktar):
         transaction = self.client.transfer_margin_to_spot(asset=token, amount=miktar)
 
+    def futures_hesap_bakiyesi(self):
+        return self.client.futures_account_balance()
 
-
+    def futures_cuzdan_aktarimi(self, token, miktar, nereye):
+        """
+            nereye`nin cevabi:(int olmasi gerekiyo)
+                1 spottan USDT-M futuresa
+                2 USDT-M futurestan spota
+                3 spottan COIN-M e
+                4 COIN-M den spota
+        """
+        PATH = '/sapi/v1/futures/transfer'
+        timstamp = int(time.time() * 1000)
+        params = {
+            'asset': token,
+            'amount': miktar,
+            'type': nereye,
+            'timestamp': timstamp
+        }
+        query_string = urlencode(params)
+        params['signature'] = hmac.new(self.client.API_SECRET.encode('utf-8'), query_string.encode('utf-8'), hashlib.sha256).hexdigest()
+        url = urljoin(BASE_URL, PATH)
+        r = requests.post(url, headers=self.headers, params=params)
+        if r.status_code == 200:
+            data = r.json()
+            return json.dumps(data, indent=4)
+        else:
+            raise BinanceException(status_code=r.status_code, data=r.json())
 
 
