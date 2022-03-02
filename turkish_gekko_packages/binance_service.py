@@ -60,7 +60,7 @@ class TurkishGekkoBinanceService:
 
 # Bunu sonradan nerde ne asset var bilmedigim bi hesaba baglarsam her seyi
 # satip sonra all in all out stratejisine gecebilmek icin yazdim
-    def cuzdan_bakiyesi(self):
+    def spot_cuzdan_bakiyesi(self):
         not_zero_balances = []
         quantities = []
         _temp = self.get_client().get_account()
@@ -116,3 +116,24 @@ class TurkishGekkoBinanceService:
 
         bid_df = bid_df.groupby(['bid_price'])['amount'].sum().reset_index()
         return ask_df, bid_df
+
+    def temp(self):
+        # TODO sevki bey burayi daha sonra girilen token valid mi degil mi diye
+        # TODO kontrol yapmak icin kullanabiliriz
+        # all_symbols = self.client.get_all_isolated_margin_symbols()
+        # info = self.client.get_margin_asset(asset='BNB')
+        info = self.client.get_margin_account()
+
+
+        return info
+
+    def spottan_margine_transfer(self, token, miktar):
+        transaction = self.client.transfer_spot_to_margin(asset=token, amount=miktar)
+
+    def marginden_spota_transfer(self, token, miktar):
+        transaction = self.client.transfer_margin_to_spot(asset=token, amount=miktar)
+
+
+
+
+
