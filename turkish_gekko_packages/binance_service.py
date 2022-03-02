@@ -1,7 +1,8 @@
 from datetime import timedelta
-
+import requests
 import binance
 from binance.client import Client
+import pandas as pd
 
 
 class TurkishGekkoBinanceService:
@@ -96,3 +97,22 @@ class TurkishGekkoBinanceService:
         except:
             None
             return None
+
+# TODO yuvarlama isi var commentteki satiri aktiflestirmeyi unutma
+    def order_book(token):
+        r = requests.get("https://api.binance.com/api/v3/depth", params=dict(symbol=token))
+        results = r.json()
+        asks = results['asks']
+        bids = results['bids']
+        ask_df = pd.DataFrame(asks, columns=['ask_price', 'amount'])
+        ask_df.ask_price = ask_df.ask_price.astype('float')
+        ask_df.amount = ask_df.amount.astype('float')
+
+        # ask_df.price = ask_df.price.round(0)
+        ask_df = ask_df.groupby(['ask_price'])['amount'].sum().reset_index()
+        bid_df = pd.DataFrame(bids, columns=['bid_price', 'amount'])
+        bid_df.bid_price = bid_df.bid_price.astype('float')
+        bid_df.amount = bid_df.amount.astype('float')
+
+        bid_df = bid_df.groupby(['bid_price'])['amount'].sum().reset_index()
+        return ask_df, bid_df
