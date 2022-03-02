@@ -59,7 +59,7 @@ class TurkishGekkoBinanceService:
 
 # Bunu sonradan nerde ne asset var bilmedigim bi hesaba baglarsam her seyi
 # satip sonra all in all out stratejisine gecebilmek icin yazdim
-    def balance_founder(self):
+    def cuzdan_bakiyesi(self):
         not_zero_balances = []
         quantities = []
         _temp = self.get_client().get_account()
@@ -77,7 +77,7 @@ class TurkishGekkoBinanceService:
 
 # TODO bu market buyla selle BinanceOrderMinAmountException gibi exceptionlari ekleyelim
 # TODO baya kaya kadar saglam olur o sekilde das gibi olur dasss
-    def market_buy(self, symbol, quantity):
+    def market_satinal(self, symbol, quantity):
         # symbole ornek olarak 'ETHUSDT'
         client = self.client
         try:
@@ -88,7 +88,7 @@ class TurkishGekkoBinanceService:
             None
             return None
 
-    def market_sell(self, symbol, quantity):
+    def market_sat(self, symbol, quantity):
         client = self.client
         try:
             api_resp = client.order_market_sell(symbol=symbol, quantity=quantity)
