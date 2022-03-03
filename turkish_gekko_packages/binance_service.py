@@ -1,8 +1,10 @@
+import enum
 import time, json, hmac, hashlib, requests, binance, datetime
 from datetime import timedelta
 from binance.client import Client
 import pandas as pd
 from urllib.parse import urljoin, urlencode
+from enum import Enum
 BASE_URL = 'https://api.binance.com'
 
 
@@ -199,24 +201,38 @@ class TurkishGekkoBinanceService:
         startTime = int(round(datetime.datetime(2022, 3, 2, ).timestamp()))
         endTime = int(round(datetime.datetime(2022, 3, 3).timestamp()))
         params = {
-            'asset': 'ETH',
+            'asset': token,
             'startTime': startTime,
             'endtime': endTime,
             'size': 100,
             'timestamp': timestamp
         }
         query_string = urlencode(params)
-        params['signature'] = hmac.new(API_SECRET.encode('utf-8'), query_string.encode('utf-8'),
+
+        params['signature'] = hmac.new(self.client.API_SECRET.encode('utf-8'), query_string.encode('utf-8'),
                                        hashlib.sha256).hexdigest()
 
         url = urljoin(BASE_URL, PATH)
-        r = requests.get(url, headers=headers, params=params)
+        r = requests.get(url, headers=self.headers, params=params)
         if r.status_code == 200:
             data = r.json()
             print(json.dumps(data, indent=4))
         else:
             print(r.status_code)
             print(r.json())
+
+    def futures_market_islem(self, token, taraf, miktar):
+        """
+            token-->ETHUSDT
+            miktar-->10
+            taraf-->BUY/SELL
+        """
+        client = self.client
+        timestamp = int(time.time() * 1000)
+        pos = client.futures_create_order(symbol=token, side=taraf, quantity=miktar,  type='MARKET', timestamp=timestamp)
+        return pos
+
+
 
 
 
