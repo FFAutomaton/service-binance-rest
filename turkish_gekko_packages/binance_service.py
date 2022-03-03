@@ -155,8 +155,6 @@ class TurkishGekkoBinanceService:
         acik_orderlar = self.client.get_open_margin_orders()
 
         # temp = self.client.futures_account_balance()
-
-
         return 0
 
     def spottan_margine_transfer(self, token, miktar):
@@ -221,18 +219,29 @@ class TurkishGekkoBinanceService:
             print(r.status_code)
             print(r.json())
 
-    def futures_market_islem(self, token, taraf, miktar):
+    def futures_market_islem(self, token, taraf, miktar, kaldirac):
         """
             token-->ETHUSDT
             miktar-->10
             taraf-->BUY/SELL
         """
-        client = self.client
         timestamp = int(time.time() * 1000)
-        pos = client.futures_create_order(symbol=token, side=taraf, quantity=miktar,  type='MARKET', timestamp=timestamp)
-        return pos
+        leverage = self.client.futures_change_leverage(symbol=token, leverage=kaldirac, timestamp=timestamp)
+        pos = self.client.futures_create_order(symbol=token, side=taraf, quantity=miktar,  type='MARKET', timestamp=timestamp)
+        return pos, leverage
 
+    def futures_tum_islemler(self, token):
+        timestamp = int(time.time() * 1000)
+        temp = self.client.futures_get_all_orders(symbol=token, timestamp=timestamp)
+        return temp
 
+    def futures_market_exit(self):
+        timestamp = int(time.time() * 1000)
+        # market_exit = self.client.futures_cancel_all_open_orders(symbol='ADAUSDT', timestamp=timestamp)
+        # temp = self.client.futures_order_book(symbol='ADAUSDT', timestamp=timestamp) FOR LATER USAGE
+        temp = self.client.futures_get_all_orders(timestamp=timestamp)
+        print(temp)
+        return 0
 
 
 
