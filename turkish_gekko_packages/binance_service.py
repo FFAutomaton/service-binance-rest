@@ -153,8 +153,7 @@ class TurkishGekkoBinanceService:
         acik_orderlar = self.client.get_open_margin_orders()
 
         # temp = self.client.futures_account_balance()
-        anan = self.client.futures_account_balance(asset='USDT', amount=10.0, type=1, timestamp=datetime.datetime.now())
-        print(anan[6])
+
 
         return 0
 
@@ -187,6 +186,21 @@ class TurkishGekkoBinanceService:
         params['signature'] = hmac.new(self.client.API_SECRET.encode('utf-8'), query_string.encode('utf-8'), hashlib.sha256).hexdigest()
         url = urljoin(BASE_URL, PATH)
         r = requests.post(url, headers=self.headers, params=params)
+        if r.status_code == 200:
+            data = r.json()
+            return json.dumps(data, indent=4)
+        else:
+            raise BinanceException(status_code=r.status_code, data=r.json())
+
+    def hesap_trade_listesi(self, token):
+        PATH = '/sapi/v1/futures/transfer'
+        timestamp = int(time.time() * 1000)
+        params = {
+            'symbol': token,
+            'timestamp': timestamp
+        }
+        url = urljoin(BASE_URL, PATH)
+        r = requests.get(url, headers=self.headers, params=params)
         if r.status_code == 200:
             data = r.json()
             return json.dumps(data, indent=4)
