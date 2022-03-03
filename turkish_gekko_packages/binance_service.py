@@ -193,18 +193,30 @@ class TurkishGekkoBinanceService:
             raise BinanceException(status_code=r.status_code, data=r.json())
 
     def hesap_trade_listesi(self, token):
+        # TODO this end point currently not working look into it later for greater usage
         PATH = '/sapi/v1/futures/transfer'
         timestamp = int(time.time() * 1000)
+        startTime = int(round(datetime.datetime(2022, 3, 2, ).timestamp()))
+        endTime = int(round(datetime.datetime(2022, 3, 3).timestamp()))
         params = {
-            'symbol': token,
+            'asset': 'ETH',
+            'startTime': startTime,
+            'endtime': endTime,
+            'size': 100,
             'timestamp': timestamp
         }
+        query_string = urlencode(params)
+        params['signature'] = hmac.new(API_SECRET.encode('utf-8'), query_string.encode('utf-8'),
+                                       hashlib.sha256).hexdigest()
+
         url = urljoin(BASE_URL, PATH)
-        r = requests.get(url, headers=self.headers, params=params)
+        r = requests.get(url, headers=headers, params=params)
         if r.status_code == 200:
             data = r.json()
-            return json.dumps(data, indent=4)
+            print(json.dumps(data, indent=4))
         else:
-            raise BinanceException(status_code=r.status_code, data=r.json())
+            print(r.status_code)
+            print(r.json())
+
 
 
