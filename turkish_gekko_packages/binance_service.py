@@ -77,6 +77,8 @@ class TurkishGekkoBinanceService:
         _temp = client.get_account_api_permissions()
         if _temp['ipRestrict'] is True:
             return 'Has ip restriction'
+        elif _temp['enableFutures'] is False:
+            return 'Has no futures permission'
         elif _temp['enableSpotAndMarginTrading'] is False:
             return 'Has no Spot and Margin trade permission'
         else:
@@ -122,7 +124,7 @@ class TurkishGekkoBinanceService:
             None
             return None
 
-# TODO yuvarlama isi var commentteki satiri aktiflestirmeyi unutma
+    # TODO yuvarlama isi var commentteki satiri aktiflestirmeyi unutma
     @staticmethod
     def order_book(token):
         r = requests.get("https://api.binance.com/api/v3/depth", params=dict(symbol=token))
@@ -192,7 +194,7 @@ class TurkishGekkoBinanceService:
         else:
             raise BinanceException(status_code=r.status_code, data=r.json())
 
-    def hesap_trade_listesi(self, token):
+    def hesap_trade_gecmisi(self, token):
         # TODO this end point currently not working look into it later for greater usage
         PATH = '/sapi/v1/futures/transfer'
         timestamp = int(time.time() * 1000)
@@ -230,18 +232,15 @@ class TurkishGekkoBinanceService:
         pos = self.client.futures_create_order(symbol=token, side=taraf, quantity=miktar,  type='MARKET', timestamp=timestamp)
         return pos, leverage
 
-    def futures_tum_islemler(self, token):
+    def futures_islem_gecmisi(self, token):
         timestamp = int(time.time() * 1000)
         temp = self.client.futures_get_all_orders(symbol=token, timestamp=timestamp)
         return temp
 
-    def futures_market_exit(self):
+    def futures_market_exit(self, token):
         timestamp = int(time.time() * 1000)
-        # market_exit = self.client.futures_cancel_all_open_orders(symbol='ADAUSDT', timestamp=timestamp)
-        # temp = self.client.futures_order_book(symbol='ADAUSDT', timestamp=timestamp) FOR LATER USAGE
-        temp = self.client.futures_get_all_orders(timestamp=timestamp)
-        print(temp)
-        return 0
+        market_exit = self.client.futures_cancel_all_open_orders(symbol=token, timestamp=timestamp)
+        return market_exit
 
 
 
