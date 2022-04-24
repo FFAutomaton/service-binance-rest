@@ -3,6 +3,8 @@ import time, json, hmac, hashlib, requests, binance, datetime
 from datetime import timedelta
 from binance.client import Client
 import pandas as pd
+from binance.exceptions import BinanceAPIException
+from binance.enums import *
 from urllib.parse import urljoin, urlencode
 from enum import Enum
 BASE_URL = 'https://api.binance.com'
@@ -31,6 +33,8 @@ class TurkishGekkoBinanceService:
         self.client = None
         self.Config = config
         self.client = self._get_client()
+        self.BUY = self.client.SIDE_BUY
+        self.SELL = self.client.SIDE_SELL
         self.headers = {
             'X-MBX-APIKEY': self.Config.get('API_KEY')
         }
@@ -134,8 +138,10 @@ class TurkishGekkoBinanceService:
         ask_df = pd.DataFrame(asks, columns=['ask_price', 'amount'])
         ask_df.ask_price = ask_df.ask_price.astype('float')
         ask_df.amount = ask_df.amount.astype('float')
+        ask_df.resample(rule=0.1).mean()
 
-        # ask_df.price = ask_df.price.round(0)
+        print(ask_df)
+        # ask_df.price = ask_df.ask_price.round()
         ask_df = ask_df.groupby(['ask_price'])['amount'].sum().reset_index()
         bid_df = pd.DataFrame(bids, columns=['bid_price', 'amount'])
         bid_df.bid_price = bid_df.bid_price.astype('float')
@@ -237,10 +243,19 @@ class TurkishGekkoBinanceService:
         temp = self.client.futures_get_all_orders(symbol=token, timestamp=timestamp)
         return temp
 
-    def futures_market_exit(self, token):
-        timestamp = int(time.time() * 1000)
-        market_exit = self.client.futures_cancel_all_open_orders(symbol=token, timestamp=timestamp)
-        return market_exit
+    def futures_market_exit(self, symbol):
+        # islemi cekip reduceonly islem aciyoruz
+        farr = self.client.futures_position_information(symbol=symbol)
+        amount = farr[0]['positionAmt']
+        temp = None
+        try:
+            temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_SELL, quantity=amount, reduceOnly=True)
+            return temp
+        except BinanceAPIException:
+            # -1 le carpiyorum cunku SHORT islemde miktar eksi geliyo
+            newamount = str(float(amount) * (-1))
+            temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_BUY, quantity=newamount, reduceOnly=True)
+            return temp
 
 
 
