@@ -248,7 +248,7 @@ class TurkishGekkoBinanceService:
         farr = self.client.futures_position_information(symbol=symbol)
         amount = farr[0]['positionAmt']
         temp = None
-        if float(amount) > 0:
+        if float(amount) > 0 or float(amount) < 0:
             try:
                 temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_SELL, quantity=amount, reduceOnly=True)
                 return temp, amount
