@@ -248,14 +248,15 @@ class TurkishGekkoBinanceService:
         farr = self.client.futures_position_information(symbol=symbol)
         amount = farr[0]['positionAmt']
         temp = None
-        try:
-            temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_SELL, quantity=amount, reduceOnly=True)
-            return temp, amount
-        except BinanceAPIException:
-            # -1 le carpiyorum cunku SHORT islemde miktar eksi geliyo
-            newamount = str(float(amount) * (-1))
-            temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_BUY, quantity=newamount, reduceOnly=True)
-            return temp, amount
+        if float(amount) > 0:
+            try:
+                temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_SELL, quantity=amount, reduceOnly=True)
+                return temp, amount
+            except BinanceAPIException:
+                # -1 le carpiyorum cunku SHORT islemde miktar eksi geliyo
+                newamount = str(float(amount) * (-1))
+                temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_BUY, quantity=newamount, reduceOnly=True)
+                return temp, amount
 
 
 
