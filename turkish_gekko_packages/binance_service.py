@@ -257,6 +257,7 @@ class TurkishGekkoBinanceService:
                 newamount = str(float(amount) * (-1))
                 temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_BUY, quantity=newamount, reduceOnly=True)
                 return temp, amount
+        return temp, amount
 
 
 
