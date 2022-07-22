@@ -247,17 +247,20 @@ class TurkishGekkoBinanceService:
         # islemi cekip reduceonly islem aciyoruz
         farr = self.client.futures_position_information(symbol=symbol)
         amount = farr[0]['positionAmt']
+        yon = 0
         temp = None
         if float(amount) > 0 or float(amount) < 0:
             try:
+                yon = 1
                 temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_SELL, quantity=amount, reduceOnly=True)
-                return temp, amount
+                return temp, yon
             except BinanceAPIException:
+                yon = -1
                 # -1 le carpiyorum cunku SHORT islemde miktar eksi geliyo
-                newamount = str(float(amount) * (-1))
+                newamount = str(float(amount) * yon)
                 temp = self.client.futures_create_order(symbol=symbol, type=FUTURE_ORDER_TYPE_MARKET, side=SIDE_BUY, quantity=newamount, reduceOnly=True)
-                return temp, amount
-        return temp, amount
+                return temp, yon
+        return temp, yon
 
 
 
