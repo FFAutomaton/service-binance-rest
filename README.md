@@ -1,6 +1,6 @@
 # service-binance-rest
 
-Bu repo binance rest API'ina baglanmak icin turkish-gekko organizasyonu kafasindadir.
+Bu repo binance rest API'ina baglanmak icin FFAutomaton organizasyonu kafasindadir.
 
 Her turlu destege acigiz.
 
