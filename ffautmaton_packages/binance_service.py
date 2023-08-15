@@ -6,7 +6,7 @@ from binance.exceptions import BinanceAPIException
 from binance.enums import *
 from urllib.parse import urljoin, urlencode
 from enum import Enum
-BASE_URL = 'https://api.binance.com'
+BASE_URL = 'https://fapi.binance.com'
 
 
 class BinanceException(Exception):
